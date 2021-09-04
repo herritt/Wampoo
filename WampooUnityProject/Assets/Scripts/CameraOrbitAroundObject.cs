@@ -9,6 +9,6 @@ public class CameraOrbitAroundObject : MonoBehaviour
 
     private void Update()
     {
-        cam.transform.RotateAround(target.position, target.forward, Time.deltaTime * 10f);
+        cam.transform.RotateAround(target.position, target.forward, Time.deltaTime * 2f);
     }
 }
