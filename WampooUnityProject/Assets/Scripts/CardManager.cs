@@ -15,7 +15,8 @@ public class CardManager : MonoBehaviour
             GameObject cardObject = Instantiate(cardPrefab, new Vector3(0, 0, 0), Quaternion.identity);
             Card card = cardObject.GetComponent<Card>();
             card.Init(i, textures[i]);
-            cardObject.transform.Translate(new Vector3(20 * i, 0, 0));
+            cardObject.transform.Translate(new Vector3(0, 1 + i*.05f, 0));
+            cardObject.transform.Rotate(90, 0, 0);
         }
     }
 
