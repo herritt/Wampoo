@@ -9,11 +9,13 @@ public class MenuManager : MonoBehaviour
     public GameObject mainMenu;
     public GameObject soloMarbleSelect;
     private PlayerColour colour;
+    public GameObject popUp;
 
     // Start is called before the first frame update
     void Start()
     {
         soloMarbleSelect.SetActive(false);
+        popUp.SetActive(false);
     }
 
     public void OnLocalGameSelect()
@@ -25,6 +27,7 @@ public class MenuManager : MonoBehaviour
     public void OnLocalMarbleColourSelect(int colour)
     {
         soloMarbleSelect.SetActive(false);
+        popUp.SetActive(true);
 
         switch ((PlayerColour) colour)
         {
@@ -41,5 +44,11 @@ public class MenuManager : MonoBehaviour
                 Debug.Log("yellow");
                 break;
         }
+    }
+
+    public void OnPopUpOkButton()
+    {
+        popUp.SetActive(false);
+
     }
 }
