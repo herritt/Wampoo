@@ -114,9 +114,6 @@ public class CardManager : MonoBehaviour
         determingingWhoToGoFirst = true;
         DealNextCard(true);
 
-        //if its not a spade, go to next person
-
-        //if it is a spade, this person goes first - let game manager know
     }
 
     private bool CheckIfSpade()
@@ -130,6 +127,14 @@ public class CardManager : MonoBehaviour
         return false;
 
     }
+
+    private void StartGameWithFirstPlayer(int firstPlayer)
+    {
+        GameManager gameManager = GameManager.Instance;
+        gameManager.DeterminedFirstPlayer(firstPlayer);
+
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -160,8 +165,8 @@ public class CardManager : MonoBehaviour
             {
                 if (CheckIfSpade())
                 {
-                    
-                    Debug.Log("player " + (currentPlayerBeingDelt + 1) + " goes first");
+                    StartGameWithFirstPlayer(currentPlayerBeingDelt);
+                    determingingWhoToGoFirst = false;
                 }
                 else
                 {
@@ -173,4 +178,5 @@ public class CardManager : MonoBehaviour
         }
 
     }
+
 }

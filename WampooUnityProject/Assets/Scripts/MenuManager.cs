@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class MenuManager : MonoBehaviour
 {
@@ -10,6 +11,7 @@ public class MenuManager : MonoBehaviour
     public GameObject soloMarbleSelect;
     private PlayerColour colour;
     public GameObject popUp;
+    public Text popUpText;
 
     // Start is called before the first frame update
     void Start()
@@ -49,6 +51,13 @@ public class MenuManager : MonoBehaviour
     public void OnPopUpOkButton()
     {
         popUp.SetActive(false);
+
+    }
+
+    public void ShowPopUpWithMessage(string message)
+    {
+        popUp.SetActive(true);
+        popUpText.text = message;
 
     }
 }

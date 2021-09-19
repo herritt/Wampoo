@@ -411,7 +411,7 @@ GameObject:
   - component: {fileID: 135411344}
   m_Layer: 0
   m_Name: Manager
-  m_TagString: Untagged
+  m_TagString: GameController
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -446,7 +446,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameState: 0
-  cardManagerObject: {fileID: 824500928}
+  cardManager: {fileID: 824500929}
+  menuManger: {fileID: 398584692}
 --- !u!1 &158898299
 GameObject:
   m_ObjectHideFlags: 0
@@ -1322,6 +1323,7 @@ MonoBehaviour:
   mainMenu: {fileID: 2109593791}
   soloMarbleSelect: {fileID: 1992710494}
   popUp: {fileID: 359184880}
+  popUpText: {fileID: 761492121}
 --- !u!1 &412132043
 GameObject:
   m_ObjectHideFlags: 0
@@ -2723,9 +2725,9 @@ MonoBehaviour:
   deck: []
   dealPositions:
   - {fileID: 158898299}
-  - {fileID: 412132043}
   - {fileID: 520184809}
   - {fileID: 508981040}
+  - {fileID: 412132043}
   dealSpeed: 3
 --- !u!4 &824500930
 Transform:
