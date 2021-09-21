@@ -10,6 +10,7 @@ public class MarbleManager : MonoBehaviour
     void Start()
     {
         GetComponent<Renderer>().material = material;
+        GetComponent<Renderer>().material.SetTextureOffset("_MainTex", new Vector2(Random.Range(0f,1f), Random.Range(0f, 1f)));
     }
 
     // Update is called once per frame
