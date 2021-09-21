@@ -47,9 +47,13 @@ public class GameManager : MonoBehaviour
                 cardManager.DetermineWhoGoesFirst();
                 break;
             case GameState.DETERMINE_FIRST_PLAYER:
-
+                gameState = GameState.RUNNING;
+                cardManager.ShuffleDeck();
+                cardManager.StackDeck();
+                cardManager.Deal(5);
                 break;
             case GameState.RUNNING:
+   
                 break;
         }
 
@@ -59,6 +63,7 @@ public class GameManager : MonoBehaviour
     {
         currentPlayer = player;
         CreatePopWithMessage(GetNameForPlayer(player) + " player goes first!");
+        
     }
 
     public void CreatePopWithMessage(string message)

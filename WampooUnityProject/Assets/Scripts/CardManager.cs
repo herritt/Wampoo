@@ -18,9 +18,11 @@ public class CardManager : MonoBehaviour
     private GameObject currentCardBeingDelt;
     private GameObject currentTarget;
     private bool determingingWhoToGoFirst = false;
+    private bool dealing = false;
     private bool cardFlipped = false;
     private int currentPlayerBeingDelt;
     private int dealCounter;
+    private int cardsRemainingToBeDelt;
     private Quaternion rotateTo;
     private float halfway;
 
@@ -62,7 +64,7 @@ public class CardManager : MonoBehaviour
         return Suit.Spades;       
     }
 
-    void ShuffleDeck()
+    public void ShuffleDeck()
     {
         for (int i = 0; i < DECK_SIZE; i++)
         {
@@ -73,13 +75,16 @@ public class CardManager : MonoBehaviour
         }
     }
 
-    void StackDeck()
+    public void StackDeck()
     {
         for (int i = 0; i < DECK_SIZE; i++)
         {
             float jitter = UnityEngine.Random.Range(0, 1f);
 
             GameObject cardObject = deck[i];
+            cardObject.transform.position = Vector3.zero;
+            cardObject.transform.rotation = Quaternion.identity;
+            cardObject.transform.Rotate(90, 0, 0);
             cardObject.transform.Translate(new Vector3(jitter, jitter, -CARD_THICKNESS - (i * CARD_THICKNESS)));
 
             jitter = UnityEngine.Random.Range(-2, 2f);
@@ -104,12 +109,15 @@ public class CardManager : MonoBehaviour
             rotateTo = currentCardBeingDelt.transform.rotation * Quaternion.Euler(rotationVector);
 
         }
- 
+
+        cardsRemainingToBeDelt = cardsRemainingToBeDelt - 1;
+
     }
 
     public void DetermineWhoGoesFirst()
     {
         dealCounter = DECK_SIZE - 1;
+        cardsRemainingToBeDelt = DECK_SIZE;
         currentPlayerBeingDelt = UnityEngine.Random.Range(1, 5);
         determingingWhoToGoFirst = true;
         DealNextCard(true);
@@ -128,18 +136,20 @@ public class CardManager : MonoBehaviour
 
     }
 
-    private void StartGameWithFirstPlayer(int firstPlayer)
+    public void Deal(int cardsInHand)
     {
-        GameManager gameManager = GameManager.Instance;
-        gameManager.DeterminedFirstPlayer(firstPlayer);
+        cardFlipped = false;
+        dealing = true;
+        dealCounter = DECK_SIZE - 1;
+        cardsRemainingToBeDelt = cardsInHand * 4 + 1;
+        DealNextCard(false);
 
     }
 
     // Update is called once per frame
     void Update()
     {
-
-        if (determingingWhoToGoFirst)
+        if (cardsRemainingToBeDelt > 0)
         {
             int offset = (DECK_SIZE - dealCounter);
             float heightOfCardAtTarget = (CARD_THICKNESS + (offset * CARD_THICKNESS));
@@ -156,23 +166,33 @@ public class CardManager : MonoBehaviour
             }
             else
             {
-                currentCardBeingDelt.transform.position = new Vector3(currentCardBeingDelt.transform.position.x,
-                    DECK_SIZE * CARD_THICKNESS,
-                    currentCardBeingDelt.transform.position.z);
+                currentCardBeingDelt.transform.position = Vector3.Lerp(
+                    currentCardBeingDelt.transform.position,
+                    currentTarget.transform.position,
+                    Time.deltaTime * dealSpeed);
             }
 
             if (Vector3.Distance(currentCardBeingDelt.transform.position, currentTarget.transform.position) < EPISOLON)
             {
-                if (CheckIfSpade())
+                if (determingingWhoToGoFirst)
                 {
-                    StartGameWithFirstPlayer(currentPlayerBeingDelt);
-                    determingingWhoToGoFirst = false;
+                    if (CheckIfSpade())
+                    {
+                        GameManager gameManager = GameManager.Instance;
+                        gameManager.DeterminedFirstPlayer(currentPlayerBeingDelt);
+                        determingingWhoToGoFirst = false;
+                    }
+                    else
+                    {
+                        DealNextCard(true);
+                    }
+
                 }
-                else
+                
+                if (dealing)
                 {
-                    DealNextCard(true);
+                    DealNextCard(false);
                 }
-                 
             }
 
         }
