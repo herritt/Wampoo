@@ -11,7 +11,7 @@ public class CardManager : MonoBehaviour
     public GameObject[] dealPositions;
     private const int DECK_SIZE = 54;
     private const float CARD_THICKNESS = 0.05f;
-    public float dealSpeed = 4F;
+    public float dealSpeed = 3;
     private Vector3 velocity = Vector3.zero;
     private float EPISOLON = 1f;
 
@@ -25,7 +25,8 @@ public class CardManager : MonoBehaviour
     private int cardsRemainingToBeDelt;
     private Quaternion rotateTo;
     private float halfway;
-
+    private GameObject[] playersHand;
+    private int playerHandCounter = 0;
     private Hashtable suitMap;
 
     private enum Suit { Hearts, Diamonds, Spades, Clubs, Joker };
@@ -35,6 +36,7 @@ public class CardManager : MonoBehaviour
     {
         deck = new GameObject[DECK_SIZE];
         suitMap = new Hashtable();
+        playersHand = new GameObject[5];
 
         for (int i = 0; i < DECK_SIZE; i++)
         {
@@ -85,12 +87,21 @@ public class CardManager : MonoBehaviour
             cardObject.transform.position = Vector3.zero;
             cardObject.transform.rotation = Quaternion.identity;
             cardObject.transform.Rotate(90, 0, 0);
+
+            
+
             cardObject.transform.Translate(new Vector3(jitter, jitter, -CARD_THICKNESS - (i * CARD_THICKNESS)));
 
             jitter = UnityEngine.Random.Range(-2, 2f);
             cardObject.transform.Rotate(0, 0, jitter);
 
+            if (GameManager.Instance.player == 1 || GameManager.Instance.player == 3)
+            {
+                cardObject.transform.Rotate(0, 0, 90);
+            }
         }
+
+        playersHand = new GameObject[5];
     }
 
     public void DealNextCard(bool flipped)
@@ -116,6 +127,7 @@ public class CardManager : MonoBehaviour
 
     public void DetermineWhoGoesFirst()
     {
+        StackDeck();
         dealCounter = DECK_SIZE - 1;
         cardsRemainingToBeDelt = DECK_SIZE;
         currentPlayerBeingDelt = UnityEngine.Random.Range(1, 5);
@@ -138,6 +150,7 @@ public class CardManager : MonoBehaviour
 
     public void Deal(int cardsInHand)
     {
+        currentPlayerBeingDelt = GameManager.Instance.player;
         cardFlipped = false;
         dealing = true;
         dealCounter = DECK_SIZE - 1;
@@ -191,6 +204,39 @@ public class CardManager : MonoBehaviour
                 
                 if (dealing)
                 {
+                    if (currentPlayerBeingDelt  == GameManager.Instance.player)
+                    {
+                        //add to player's hand                    
+                        playersHand[playerHandCounter++] = currentCardBeingDelt;
+
+                        currentCardBeingDelt.transform.rotation = Quaternion.identity;
+                        float handOffset = 30f;
+                        if (currentPlayerBeingDelt == 0)
+                        {
+                            currentCardBeingDelt.transform.Rotate(-20, 180, 180);
+                            currentCardBeingDelt.transform.Translate(new Vector3(-handOffset + playerHandCounter * 10, -5, 0));
+
+                        }
+                        else if(currentPlayerBeingDelt == 1)
+                        {
+                            currentCardBeingDelt.transform.Rotate(-20, -90, 0);
+                            currentCardBeingDelt.transform.Translate(new Vector3(handOffset - playerHandCounter * 10, 5, 0));
+
+                        }
+                        else if (currentPlayerBeingDelt == 2)
+                        {
+                            currentCardBeingDelt.transform.Rotate(-20, 0, 180);
+                            currentCardBeingDelt.transform.Translate(new Vector3(-handOffset + playerHandCounter * 10, -5, 0));
+
+                        }
+                        else
+                        {
+                            currentCardBeingDelt.transform.Rotate(-20, 90, 180);
+                            currentCardBeingDelt.transform.Translate(new Vector3(-handOffset + playerHandCounter * 10, -5, 0));
+
+                        }
+
+                    }
                     DealNextCard(false);
                 }
             }

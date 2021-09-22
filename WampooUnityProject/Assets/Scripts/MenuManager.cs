@@ -5,11 +5,8 @@ using UnityEngine.UI;
 
 public class MenuManager : MonoBehaviour
 {
-    public enum PlayerColour { Red, Blue, Green, Yellow };
-
     public GameObject mainMenu;
     public GameObject soloMarbleSelect;
-    private PlayerColour colour;
     public GameObject popUp;
     public Text popUpText;
 
@@ -31,21 +28,8 @@ public class MenuManager : MonoBehaviour
         soloMarbleSelect.SetActive(false);
         popUp.SetActive(true);
 
-        switch ((PlayerColour) colour)
-        {
-            case (PlayerColour.Red):
-                Debug.Log("red");
-                break;
-            case (PlayerColour.Blue):
-                Debug.Log("blue");
-                break;
-            case (PlayerColour.Green):
-                Debug.Log("green");
-                break;
-            case (PlayerColour.Yellow):
-                Debug.Log("yellow");
-                break;
-        }
+        GameManager.Instance.player = colour;
+
     }
 
     public void OnPopUpOkButton()

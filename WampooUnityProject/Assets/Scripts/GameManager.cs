@@ -8,11 +8,13 @@ public class GameManager : MonoBehaviour
 
     public static GameManager Instance { get { return _instance; } }
     public enum GameState { INTRODUCTION, DETERMINE_FIRST_PLAYER, RUNNING };
+    public enum PlayerColour { Red, Green, Yellow, Blue };
 
     public GameState gameState;
     public CardManager cardManager;
     public MenuManager menuManger;
     private int currentPlayer;
+    public int player;
 
     private void Awake()
     {
