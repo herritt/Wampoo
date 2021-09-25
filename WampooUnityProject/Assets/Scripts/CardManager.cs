@@ -28,6 +28,7 @@ public class CardManager : MonoBehaviour
     private GameObject[] playersHand;
     private int playerHandCounter = 0;
     private Hashtable suitMap;
+    private int[] playerYRotations = { 180, -90, 0, 90 };
 
     private enum Suit { Hearts, Diamonds, Spades, Clubs, Joker };
 
@@ -211,30 +212,8 @@ public class CardManager : MonoBehaviour
 
                         currentCardBeingDelt.transform.rotation = Quaternion.identity;
                         float handOffset = 30f;
-                        if (currentPlayerBeingDelt == 0)
-                        {
-                            currentCardBeingDelt.transform.Rotate(-20, 180, 180);
-                            currentCardBeingDelt.transform.Translate(new Vector3(-handOffset + playerHandCounter * 10, -5, 0));
-
-                        }
-                        else if(currentPlayerBeingDelt == 1)
-                        {
-                            currentCardBeingDelt.transform.Rotate(-20, -90, 0);
-                            currentCardBeingDelt.transform.Translate(new Vector3(handOffset - playerHandCounter * 10, 5, 0));
-
-                        }
-                        else if (currentPlayerBeingDelt == 2)
-                        {
-                            currentCardBeingDelt.transform.Rotate(-20, 0, 180);
-                            currentCardBeingDelt.transform.Translate(new Vector3(-handOffset + playerHandCounter * 10, -5, 0));
-
-                        }
-                        else
-                        {
-                            currentCardBeingDelt.transform.Rotate(-20, 90, 180);
-                            currentCardBeingDelt.transform.Translate(new Vector3(-handOffset + playerHandCounter * 10, -5, 0));
-
-                        }
+                        currentCardBeingDelt.transform.Rotate(-20, playerYRotations[currentPlayerBeingDelt], 0);
+                        currentCardBeingDelt.transform.Translate(new Vector3(handOffset - playerHandCounter * 10, 5, 0));
 
                     }
                     DealNextCard(false);
