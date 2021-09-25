@@ -13,7 +13,7 @@ public class CardManager : MonoBehaviour
     private const float CARD_THICKNESS = 0.05f;
     public float dealSpeed = 3;
     private Vector3 velocity = Vector3.zero;
-    private float EPISOLON = 1f;
+    private float EPISOLON = 0.1f;
 
     private GameObject currentCardBeingDelt;
     private GameObject currentTarget;
@@ -47,7 +47,7 @@ public class CardManager : MonoBehaviour
             string name = texture.name;
 
             suitMap.Add(i, SuitFromName(name));
-                 
+
             card.Init(i, texture);
             cardObject.transform.Rotate(90, 0, 0);
             deck[i] = cardObject;
@@ -64,7 +64,7 @@ public class CardManager : MonoBehaviour
         if (name.Contains("clubs")) return Suit.Clubs;
         if (name.Contains("joker")) return Suit.Joker;
 
-        return Suit.Spades;       
+        return Suit.Spades;
     }
 
     public void ShuffleDeck()
@@ -89,7 +89,7 @@ public class CardManager : MonoBehaviour
             cardObject.transform.rotation = Quaternion.identity;
             cardObject.transform.Rotate(90, 0, 0);
 
-            
+
 
             cardObject.transform.Translate(new Vector3(jitter, jitter, -CARD_THICKNESS - (i * CARD_THICKNESS)));
 
@@ -202,10 +202,10 @@ public class CardManager : MonoBehaviour
                     }
 
                 }
-                
+
                 if (dealing)
                 {
-                    if (currentPlayerBeingDelt  == GameManager.Instance.player)
+                    if (currentPlayerBeingDelt == GameManager.Instance.player)
                     {
                         //add to player's hand                    
                         playersHand[playerHandCounter++] = currentCardBeingDelt;
@@ -213,7 +213,13 @@ public class CardManager : MonoBehaviour
                         currentCardBeingDelt.transform.rotation = Quaternion.identity;
                         float handOffset = 30f;
                         currentCardBeingDelt.transform.Rotate(-20, playerYRotations[currentPlayerBeingDelt], 0);
+
+                        Vector3 origPosition = currentCardBeingDelt.transform.position;
                         currentCardBeingDelt.transform.Translate(new Vector3(handOffset - playerHandCounter * 10, 5, 0));
+                        Vector3 finalPosition = currentCardBeingDelt.transform.position;
+                        currentCardBeingDelt.transform.position = origPosition;
+
+                        StartCoroutine(Animate(currentCardBeingDelt, origPosition, finalPosition));
 
                     }
                     DealNextCard(false);
@@ -221,7 +227,20 @@ public class CardManager : MonoBehaviour
             }
 
         }
-
     }
 
+    IEnumerator Animate(GameObject obj, Vector3 startPosition, Vector3 stopPosition)
+    {
+        while (Vector3.Distance(obj.transform.position, stopPosition) > EPISOLON)
+        {
+            obj.transform.position = Vector3.Lerp(obj.transform.position, stopPosition, Time.deltaTime * dealSpeed);
+
+            yield return null;
+        }
+
+        
+
+    }
 }
+
+    
