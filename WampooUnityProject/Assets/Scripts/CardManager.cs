@@ -96,9 +96,21 @@ public class CardManager : MonoBehaviour
             jitter = UnityEngine.Random.Range(-2, 2f);
             cardObject.transform.Rotate(0, 0, jitter);
 
-            if (GameManager.Instance.player == 1 || GameManager.Instance.player == 3)
+            switch (GameManager.Instance.player)
             {
-                cardObject.transform.Rotate(0, 0, 90);
+                case 0:
+                    cardObject.transform.Rotate(0, 0, 180);
+                    break;
+                case 1:
+                    cardObject.transform.Rotate(0, 0, 90);
+                    break;
+                case 2:
+                    cardObject.transform.Rotate(0, 0, 0);
+                    break;
+                case 3:
+                    cardObject.transform.Rotate(0, 0, -90);
+                    break;
+
             }
         }
 
@@ -178,13 +190,6 @@ public class CardManager : MonoBehaviour
             {
                 currentCardBeingDelt.transform.rotation = Quaternion.Lerp(currentCardBeingDelt.transform.rotation, rotateTo, Time.deltaTime * dealSpeed * 4);
             }
-            else
-            {
-                currentCardBeingDelt.transform.position = Vector3.Lerp(
-                    currentCardBeingDelt.transform.position,
-                    currentTarget.transform.position,
-                    Time.deltaTime * dealSpeed);
-            }
 
             if (Vector3.Distance(currentCardBeingDelt.transform.position, currentTarget.transform.position) < EPISOLON)
             {
@@ -210,16 +215,27 @@ public class CardManager : MonoBehaviour
                         //add to player's hand                    
                         playersHand[playerHandCounter++] = currentCardBeingDelt;
 
+                        Quaternion startRotation = currentCardBeingDelt.transform.rotation;
                         currentCardBeingDelt.transform.rotation = Quaternion.identity;
                         float handOffset = 30f;
                         currentCardBeingDelt.transform.Rotate(-20, playerYRotations[currentPlayerBeingDelt], 0);
+                        Quaternion stopRotation = currentCardBeingDelt.transform.rotation;
+                        currentCardBeingDelt.transform.rotation = startRotation;
 
                         Vector3 origPosition = currentCardBeingDelt.transform.position;
-                        currentCardBeingDelt.transform.Translate(new Vector3(handOffset - playerHandCounter * 10, 5, 0));
+                        currentCardBeingDelt.transform.Translate(new Vector3(handOffset - playerHandCounter * 10, 5, -10));
                         Vector3 finalPosition = currentCardBeingDelt.transform.position;
                         currentCardBeingDelt.transform.position = origPosition;
 
-                        StartCoroutine(Animate(currentCardBeingDelt, origPosition, finalPosition));
+                        GameObject cardRef = currentCardBeingDelt;
+                        StartCoroutine(
+                            Animate(currentCardBeingDelt, finalPosition, dealSpeed,
+                            result =>
+                            {
+                                StartCoroutine(Rotate(cardRef, stopRotation, dealSpeed));
+
+                            }
+                            ));
 
                     }
                     DealNextCard(false);
@@ -229,18 +245,30 @@ public class CardManager : MonoBehaviour
         }
     }
 
-    IEnumerator Animate(GameObject obj, Vector3 startPosition, Vector3 stopPosition)
+    IEnumerator Rotate(GameObject obj, Quaternion stopRotation, float speed)
     {
-        while (Vector3.Distance(obj.transform.position, stopPosition) > EPISOLON)
+
+        while (Quaternion.Angle(obj.transform.rotation, stopRotation) >= EPISOLON)
         {
-            obj.transform.position = Vector3.Lerp(obj.transform.position, stopPosition, Time.deltaTime * dealSpeed);
+            obj.transform.rotation = Quaternion.Lerp(obj.transform.rotation, stopRotation, Time.deltaTime * speed);
+            yield return null;
+        }
+
+    }
+
+
+    IEnumerator Animate(GameObject obj, Vector3 stopPosition, float speed, Action<int> callback)
+    {
+        while (Vector3.Distance(obj.transform.position, stopPosition) >= EPISOLON)
+        {
+            obj.transform.position = Vector3.Lerp(obj.transform.position, stopPosition, Time.deltaTime * speed);
 
             yield return null;
         }
 
-        
+        callback(1);
 
     }
 }
 
-    
+
