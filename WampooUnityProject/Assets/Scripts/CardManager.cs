@@ -17,9 +17,8 @@ public class CardManager : MonoBehaviour
 
     private GameObject currentCardBeingDelt;
     private GameObject currentTarget;
-    private bool determingingWhoToGoFirst = false;
-    private bool dealing = false;
     private bool cardFlipped = false;
+    private bool finishedShowingCards = false;
     private int currentPlayerBeingDelt;
     private int dealCounter;
     private int cardsRemainingToBeDelt;
@@ -29,6 +28,9 @@ public class CardManager : MonoBehaviour
     private int playerHandCounter = 0;
     private Hashtable suitMap;
     private int[] playerYRotations = { 180, -90, 0, 90 };
+
+    public Transform[] cardInHandPositions;
+    public Transform[] showCardPositions;
 
     private enum Suit { Hearts, Diamonds, Spades, Clubs, Joker };
 
@@ -144,7 +146,6 @@ public class CardManager : MonoBehaviour
         dealCounter = DECK_SIZE - 1;
         cardsRemainingToBeDelt = DECK_SIZE;
         currentPlayerBeingDelt = UnityEngine.Random.Range(1, 5);
-        determingingWhoToGoFirst = true;
         DealNextCard(true);
 
     }
@@ -164,88 +165,148 @@ public class CardManager : MonoBehaviour
     public void Deal(int cardsInHand)
     {
         currentPlayerBeingDelt = GameManager.Instance.player;
-        cardFlipped = false;
-        dealing = true;
         dealCounter = DECK_SIZE - 1;
         cardsRemainingToBeDelt = cardsInHand * 4 + 1;
         DealNextCard(false);
 
     }
 
-    // Update is called once per frame
-    void Update()
+    private void SendCurrentCardToTarget()
     {
-        if (cardsRemainingToBeDelt > 0)
+        int offset = (DECK_SIZE - dealCounter);
+        float heightOfCardAtTarget = (CARD_THICKNESS + (offset * CARD_THICKNESS));
+        currentTarget.transform.position = new Vector3(currentTarget.transform.position.x, heightOfCardAtTarget, currentTarget.transform.position.z);
+        currentCardBeingDelt.transform.position = Vector3.Lerp(currentCardBeingDelt.transform.position,
+            currentTarget.transform.position, Time.deltaTime * dealSpeed);
+
+    }
+
+    private void FlipCardIfNeeded()
+    {
+        float distance = Vector3.Distance(currentCardBeingDelt.transform.position, currentTarget.transform.position);
+
+        if (cardFlipped && distance < halfway)
         {
-            int offset = (DECK_SIZE - dealCounter);
-            float heightOfCardAtTarget = (CARD_THICKNESS + (offset * CARD_THICKNESS));
-            currentTarget.transform.position = new Vector3(currentTarget.transform.position.x, heightOfCardAtTarget, currentTarget.transform.position.z);
-
-            currentCardBeingDelt.transform.position = Vector3.Lerp(currentCardBeingDelt.transform.position,
-                currentTarget.transform.position, Time.deltaTime * dealSpeed);
-
-            float distance = Vector3.Distance(currentCardBeingDelt.transform.position, currentTarget.transform.position);
-
-            if (cardFlipped && distance < halfway)
-            {
-                currentCardBeingDelt.transform.rotation = Quaternion.Lerp(currentCardBeingDelt.transform.rotation, rotateTo, Time.deltaTime * dealSpeed * 4);
-            }
-
-            if (Vector3.Distance(currentCardBeingDelt.transform.position, currentTarget.transform.position) < EPISOLON)
-            {
-                if (determingingWhoToGoFirst)
-                {
-                    if (CheckIfSpade())
-                    {
-                        GameManager gameManager = GameManager.Instance;
-                        gameManager.DeterminedFirstPlayer(currentPlayerBeingDelt);
-                        determingingWhoToGoFirst = false;
-                    }
-                    else
-                    {
-                        DealNextCard(true);
-                    }
-
-                }
-
-                if (dealing)
-                {
-                    if (currentPlayerBeingDelt == GameManager.Instance.player)
-                    {
-                        //add to player's hand                    
-                        playersHand[playerHandCounter++] = currentCardBeingDelt;
-
-                        Quaternion startRotation = currentCardBeingDelt.transform.rotation;
-                        currentCardBeingDelt.transform.rotation = Quaternion.identity;
-                        float handOffset = 30f;
-                        currentCardBeingDelt.transform.Rotate(-20, playerYRotations[currentPlayerBeingDelt], 0);
-                        Quaternion stopRotation = currentCardBeingDelt.transform.rotation;
-                        currentCardBeingDelt.transform.rotation = startRotation;
-
-                        Vector3 origPosition = currentCardBeingDelt.transform.position;
-                        currentCardBeingDelt.transform.Translate(new Vector3(handOffset - playerHandCounter * 10, 5, -10));
-                        Vector3 finalPosition = currentCardBeingDelt.transform.position;
-                        currentCardBeingDelt.transform.position = origPosition;
-
-                        GameObject cardRef = currentCardBeingDelt;
-                        StartCoroutine(
-                            Animate(currentCardBeingDelt, finalPosition, dealSpeed,
-                            result =>
-                            {
-                                StartCoroutine(Rotate(cardRef, stopRotation, dealSpeed));
-
-                            }
-                            ));
-
-                    }
-                    DealNextCard(false);
-                }
-            }
-
+            currentCardBeingDelt.transform.rotation = Quaternion.Lerp(currentCardBeingDelt.transform.rotation, rotateTo, Time.deltaTime * dealSpeed * 4);
         }
     }
 
-    IEnumerator Rotate(GameObject obj, Quaternion stopRotation, float speed)
+    // Update is called once per frame
+    void Update()
+    {
+        switch (GameManager.Instance.gameState)
+        {
+            case GameManager.GameState.INTRODUCTION:
+                break;
+            case GameManager.GameState.DETERMINE_FIRST_PLAYER:
+
+                if (cardsRemainingToBeDelt > 0)
+                {
+                    SendCurrentCardToTarget();
+                    FlipCardIfNeeded();
+
+                    if (Vector3.Distance(currentCardBeingDelt.transform.position, currentTarget.transform.position) < EPISOLON)
+                    {
+                        if (CheckIfSpade())
+                        {
+                            GameManager gameManager = GameManager.Instance;
+                            gameManager.DeterminedFirstPlayer(currentPlayerBeingDelt);
+                            gameManager.gameState = GameManager.GameState.FINISHED_DETERMINING_FIRST_PLAYER;
+                        }
+                        else
+                        {
+                            DealNextCard(true);
+                        }
+                    }
+
+                }
+ 
+                break;
+            case GameManager.GameState.DEALING:
+
+                if (cardsRemainingToBeDelt > 0)
+                {
+                    SendCurrentCardToTarget();
+
+                    if (currentPlayerBeingDelt == GameManager.Instance.player)
+                    {
+                        //deal card
+                        StartCoroutine(DealPlayerCard(currentCardBeingDelt, playerHandCounter, result => 
+                        {
+                            //TODO: fix magic number
+                            if (result == 4)
+                            {
+                                GameManager.Instance.gameState = GameManager.GameState.MOVE_CARDS_TO_HAND;
+                            }
+                        }));
+
+                        //add to player's hand                    
+                        playersHand[playerHandCounter++] = currentCardBeingDelt;
+
+                        //deal next card
+                        DealNextCard(false);
+                    }
+
+                    if (Vector3.Distance(currentCardBeingDelt.transform.position, currentTarget.transform.position) < EPISOLON)
+                    {
+                        DealNextCard(false);
+                    }
+                }
+
+
+                break;
+            case GameManager.GameState.MOVE_CARDS_TO_HAND:
+                float cardMoveSpeed = 1f;
+
+                for (int i = 0; i < cardInHandPositions.Length; i++)
+                {
+                    if (cardInHandPositions[i] != null)
+                    {
+                        StartCoroutine(
+                        Animate(playersHand[i], cardInHandPositions[i].position, cardMoveSpeed,
+                        null
+
+                        ));
+
+                        StartCoroutine(
+                            Rotate(playersHand[i], cardInHandPositions[i].rotation, cardMoveSpeed, null));
+                    }
+                }
+                break;
+            case GameManager.GameState.RUNNING:
+                break;
+        }
+
+    }
+
+    IEnumerator DealPlayerCard(GameObject cardBeingDelt, int index, Action<int> callback)
+    {
+        Quaternion startRotation = currentCardBeingDelt.transform.rotation;
+        currentCardBeingDelt.transform.rotation = Quaternion.identity;
+        currentCardBeingDelt.transform.Rotate(-20, playerYRotations[currentPlayerBeingDelt], 0);
+        Quaternion stopRotation = currentCardBeingDelt.transform.rotation;
+        currentCardBeingDelt.transform.rotation = startRotation;
+
+        Vector3 finalPosition = showCardPositions[index].position;
+
+
+        GameObject cardRef = currentCardBeingDelt;
+        yield return StartCoroutine(
+            Animate(currentCardBeingDelt, finalPosition, dealSpeed,
+            result =>
+            {
+                StartCoroutine(Rotate(cardRef, stopRotation, dealSpeed, rotateResult => 
+                {
+                    callback(index);
+
+                }));
+                
+            }
+            ));   
+
+    }
+
+    IEnumerator Rotate(GameObject obj, Quaternion stopRotation, float speed, Action<int> callback)
     {
 
         while (Quaternion.Angle(obj.transform.rotation, stopRotation) >= EPISOLON)
@@ -253,6 +314,8 @@ public class CardManager : MonoBehaviour
             obj.transform.rotation = Quaternion.Lerp(obj.transform.rotation, stopRotation, Time.deltaTime * speed);
             yield return null;
         }
+
+        callback(1);
 
     }
 

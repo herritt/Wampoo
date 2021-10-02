@@ -7,7 +7,14 @@ public class GameManager : MonoBehaviour
     private static GameManager _instance;
 
     public static GameManager Instance { get { return _instance; } }
-    public enum GameState { INTRODUCTION, DETERMINE_FIRST_PLAYER, RUNNING };
+    public enum GameState
+    {
+        INTRODUCTION,
+        DETERMINE_FIRST_PLAYER,
+        FINISHED_DETERMINING_FIRST_PLAYER,
+        DEALING,
+        MOVE_CARDS_TO_HAND,
+        RUNNING };
     public enum PlayerColour { Red, Green, Yellow, Blue };
 
     public GameState gameState;
@@ -48,11 +55,14 @@ public class GameManager : MonoBehaviour
                 gameState = GameState.DETERMINE_FIRST_PLAYER;
                 cardManager.DetermineWhoGoesFirst();
                 break;
-            case GameState.DETERMINE_FIRST_PLAYER:
-                gameState = GameState.RUNNING;
+            case GameState.FINISHED_DETERMINING_FIRST_PLAYER:
                 cardManager.ShuffleDeck();
                 cardManager.StackDeck();
                 cardManager.Deal(5);
+                gameState = GameState.DEALING;
+                break;
+            case GameState.DEALING:
+
                 break;
             case GameState.RUNNING:
    
