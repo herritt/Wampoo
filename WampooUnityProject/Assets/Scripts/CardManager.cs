@@ -272,6 +272,8 @@ public class CardManager : MonoBehaviour
                             Rotate(playersHand[i], cardInHandPositions[i].rotation, cardMoveSpeed, null));
                     }
                 }
+                GameManager.Instance.gameState = GameManager.GameState.RUNNING;
+                     
                 break;
             case GameManager.GameState.RUNNING:
                 break;
