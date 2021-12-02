@@ -18,27 +18,22 @@ public class CardManager : MonoBehaviour
     private GameObject currentCardBeingDelt;
     private GameObject currentTarget;
     private bool cardFlipped = false;
-    private bool finishedShowingCards = false;
     private int currentPlayerBeingDelt;
     private int dealCounter;
     private int cardsRemainingToBeDelt;
     private Quaternion rotateTo;
     private float halfway;
-    private GameObject[] playersHand;
+    public GameObject[] playersHand;
     private int playerHandCounter = 0;
-    private Hashtable suitMap;
     private int[] playerYRotations = { 180, -90, 0, 90 };
 
     public Transform[] cardInHandPositions;
     public Transform[] showCardPositions;
 
-    private enum Suit { Hearts, Diamonds, Spades, Clubs, Joker };
-
     // Start is called before the first frame update
     void Start()
     {
         deck = new GameObject[DECK_SIZE];
-        suitMap = new Hashtable();
         playersHand = new GameObject[5];
 
         for (int i = 0; i < DECK_SIZE; i++)
@@ -47,8 +42,8 @@ public class CardManager : MonoBehaviour
             Card card = cardObject.GetComponent<Card>();
             Texture texture = textures[i];
             string name = texture.name;
-
-            suitMap.Add(i, SuitFromName(name));
+            card.suit = SuitFromName(name);
+            card.cardType = CardTypeFromName(name);
 
             card.Init(i, texture);
             cardObject.transform.Rotate(90, 0, 0);
@@ -59,14 +54,76 @@ public class CardManager : MonoBehaviour
         StackDeck();
     }
 
+    private CardType CardTypeFromName(string name)
+    {
+        Debug.Log(name);
+
+        if (name.Contains("ace")) return CardType.ACE;
+        if (name.Contains("2_")) return CardType.TWO;
+        if (name.Contains("3_")) return CardType.THREE;
+        if (name.Contains("4_")) return CardType.FOUR;
+        if (name.Contains("5_")) return CardType.FIVE;
+        if (name.Contains("6_")) return CardType.SIX;
+        if (name.Contains("7_")) return CardType.SEVEN;
+        if (name.Contains("8_")) return CardType.EIGHT;
+        if (name.Contains("9_")) return CardType.NINE;
+        if (name.Contains("10_")) return CardType.TEN;
+        if (name.Contains("jack")) return CardType.JACK;
+        if (name.Contains("queen")) return CardType.QUEEN;
+        if (name.Contains("king")) return CardType.KING;
+        if (name.Contains("red")) return CardType.RED;
+        if (name.Contains("black")) return CardType.BLACK;
+
+        return CardType.ACE;
+    }
+
+    internal void handlePlayerClickedCard(Card card)
+    {
+        Debug.Log("Playing card: " + card);
+
+        if (cardCanBePlayed(card))
+        {
+            StartCoroutine(AnimatePlayingCard(card));
+        }
+    }
+
+    IEnumerator AnimatePlayingCard(Card card)
+    {
+
+        Quaternion startRotation = card.transform.rotation;
+        card.transform.rotation = Quaternion.identity;
+        card.transform.Rotate(-90, 0, 90);
+        Quaternion stopRotation = card.transform.rotation;
+        card.transform.rotation = startRotation;
+
+        StartCoroutine(Rotate(card.gameObject, stopRotation, 3f, callback =>
+        {
+        }));
+
+        yield return StartCoroutine(Animate(
+            card.gameObject, 
+            dealPositions[GameManager.Instance.player].transform.position,
+            3f, 
+            callback =>
+        {
+            Debug.Log("Done");
+
+        }));
+    }
+
+    private bool cardCanBePlayed(Card card)
+    {
+        return true;
+    }
+
     private Suit SuitFromName(string name)
     {
-        if (name.Contains("hearts")) return Suit.Hearts;
-        if (name.Contains("diamonds")) return Suit.Diamonds;
-        if (name.Contains("clubs")) return Suit.Clubs;
-        if (name.Contains("joker")) return Suit.Joker;
+        if (name.Contains("hearts")) return Suit.HEARTS;
+        if (name.Contains("diamonds")) return Suit.DIAMONDS;
+        if (name.Contains("clubs")) return Suit.CLUBS;
+        if (name.Contains("joker")) return Suit.JOKER;
 
-        return Suit.Spades;
+        return Suit.SPADES;
     }
 
     public void ShuffleDeck()
@@ -90,8 +147,6 @@ public class CardManager : MonoBehaviour
             cardObject.transform.position = Vector3.zero;
             cardObject.transform.rotation = Quaternion.identity;
             cardObject.transform.Rotate(90, 0, 0);
-
-
 
             cardObject.transform.Translate(new Vector3(jitter, jitter, -CARD_THICKNESS - (i * CARD_THICKNESS)));
 
@@ -153,11 +208,7 @@ public class CardManager : MonoBehaviour
     private bool CheckIfSpade()
     {
         Card card = currentCardBeingDelt.GetComponent<Card>();
-        int id = card.id;
-
-        Suit suit = (Suit)suitMap[id];
-        if (suit.Equals(Suit.Spades)) return true;
-
+        if (card.suit.Equals(Suit.SPADES)) return true;
         return false;
 
     }
@@ -264,12 +315,13 @@ public class CardManager : MonoBehaviour
                     {
                         StartCoroutine(
                         Animate(playersHand[i], cardInHandPositions[i].position, cardMoveSpeed,
-                        null
+                        result => { }
 
                         ));
 
                         StartCoroutine(
-                            Rotate(playersHand[i], cardInHandPositions[i].rotation, cardMoveSpeed, null));
+                            Rotate(playersHand[i], cardInHandPositions[i].rotation, cardMoveSpeed, 
+                            result => { }));
                     }
                 }
                 GameManager.Instance.gameState = GameManager.GameState.RUNNING;
@@ -290,7 +342,6 @@ public class CardManager : MonoBehaviour
         currentCardBeingDelt.transform.rotation = startRotation;
 
         Vector3 finalPosition = showCardPositions[index].position;
-
 
         GameObject cardRef = currentCardBeingDelt;
         yield return StartCoroutine(
