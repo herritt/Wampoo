@@ -324,10 +324,12 @@ public class CardManager : MonoBehaviour
                             result => { }));
                     }
                 }
-                GameManager.Instance.gameState = GameManager.GameState.RUNNING;
+                GameManager.Instance.gameState = GameManager.GameState.CURRENT_PLAYERS_TURN_NO_MARBLES_IN_PLAY;
                      
                 break;
             case GameManager.GameState.RUNNING:
+                break;
+            case GameManager.GameState.CURRENT_PLAYERS_TURN_NO_MARBLES_IN_PLAY:
                 break;
         }
 

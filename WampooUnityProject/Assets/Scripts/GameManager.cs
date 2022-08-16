@@ -14,7 +14,11 @@ public class GameManager : MonoBehaviour
         FINISHED_DETERMINING_FIRST_PLAYER,
         DEALING,
         MOVE_CARDS_TO_HAND,
-        RUNNING };
+        RUNNING,
+        CURRENT_PLAYERS_TURN_NO_MARBLES_IN_PLAY,
+        CURRENT_PLAYERS_TURN_MARBLES_IN_PLAY
+
+    };
     public enum PlayerColour { Red, Green, Yellow, Blue };
 
     public GameState gameState;

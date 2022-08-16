@@ -22,6 +22,8 @@ public class Card : MonoBehaviour
     {
         cardManager = GameManager.Instance.cardManager;
         highlightColor = new Color(1f, 1f, .3f, .5f);
+        startColor = GetComponent<MeshRenderer>().materials[0].color;
+
     }
 
     public void Init(int id, Texture texture)
@@ -37,9 +39,27 @@ public class Card : MonoBehaviour
 
         if (playersHand.Contains(gameObject))
         {
-            //show highlight
-            startColor = GetComponent<MeshRenderer>().materials[0].color;
-            GetComponent<MeshRenderer>().materials[0].color = highlightColor;
+            //show highlight of cards that can be played
+
+
+            switch (GameManager.Instance.gameState)
+            {
+                case GameManager.GameState.CURRENT_PLAYERS_TURN_NO_MARBLES_IN_PLAY:
+
+                    if (cardType == CardType.ACE ||
+                        cardType == CardType.KING ||
+                        suit == Suit.JOKER)
+                    {
+                        GetComponent<MeshRenderer>().materials[0].color = highlightColor;
+
+                    }
+
+
+                    break;
+
+            }
+
+            
         }
     }
 
@@ -49,7 +69,19 @@ public class Card : MonoBehaviour
 
         if (playersHand.Contains(gameObject))
         {
-            GetComponent<MeshRenderer>().materials[0].color = startColor;
+
+            switch (GameManager.Instance.gameState)
+            {
+                case GameManager.GameState.CURRENT_PLAYERS_TURN_NO_MARBLES_IN_PLAY:
+
+                    GetComponent<MeshRenderer>().materials[0].color = startColor;
+
+                    break;
+
+            }
+
+
+
         }
     }
 
